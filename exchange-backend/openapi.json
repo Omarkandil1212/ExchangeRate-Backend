@@ -1,0 +1,1706 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Exchange Rate Application",
+    "description": "This is an exchange rate application where users can sign up for an account, add transactions, see their previous transactions, and get the current exchange rate calculated according to the past 3 days. Users can also check the conversion rate and amount for buying or selling USD and LBP.",
+    "version": "1.0.11"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:5000/"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Exchange Rate",
+      "description": "Calculate exchange rates according to data in database"
+    },
+    {
+      "name": "User",
+      "description": "Adding new users"
+    },
+    {
+      "name": "Transaction",
+      "description": "Adding transactions or getting user transactions"
+    },
+    {
+      "name": "Statistics",
+      "description": "Statistical calculations related to exchange rates. NOTE THAT ALL ERROR CODES APPLICABLE IN /exchangeRate/withDates ARE APPLICABLE HERE"
+    },
+    {
+      "name": "Predictions",
+      "description": "Get the predicted exchange rate"
+    },
+    {
+      "name": "Wallet",
+      "description": "Get things related to the wallet"
+    },
+    {
+      "name": "User Transactions",
+      "description": "Allow users to perform transactions between each other"
+    }
+  ],
+  "paths": {
+    "/interUserTransactions": {
+      "post": {
+        "tags": [
+          "User Transactions"
+        ],
+        "summary": "Add a new transaction",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "usd_amount": {
+                    "type": "number",
+                    "example": 1
+                  },
+                  "lbp_amount": {
+                    "type": "number",
+                    "example": 89000
+                  },
+                  "usd_to_lbp": {
+                    "type": "integer",
+                    "example": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transaction details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accepted": {
+                      "type": "boolean",
+                      "example": false
+                    },
+                    "added_date": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": "2024-04-14T19:54:54.900163"
+                    },
+                    "date_accepted": {
+                      "type": "string",
+                      "format": "date-time",
+                      "example": null
+                    },
+                    "id": {
+                      "type": "integer",
+                      "example": null
+                    },
+                    "lbp_amount": {
+                      "type": "number",
+                      "example": 89000
+                    },
+                    "usd_amount": {
+                      "type": "number",
+                      "example": 1
+                    },
+                    "usd_to_lbp": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "user1": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": 42
+                        },
+                        "user_name": {
+                          "type": "string",
+                          "example": "sharaf302"
+                        }
+                      }
+                    },
+                    "user1_id": {
+                      "type": "integer",
+                      "example": 42
+                    },
+                    "user2": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer",
+                          "example": null
+                        },
+                        "user_name": {
+                          "type": "string",
+                          "example": null
+                        }
+                      }
+                    },
+                    "user2_id": {
+                      "type": "integer",
+                      "example": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing values or values with incorrect names in the json"
+          },
+          "401": {
+            "description": "Values given should not be empty"
+          },
+          "500": {
+            "description": "User unavailable"
+          }
+        },
+        "security": [
+          {
+            "JWTToken": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "User Transactions"
+        ],
+        "summary": "Get all transactions",
+        "responses": {
+          "200": {
+            "description": "List of transactions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserTransaction"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "User unavailable"
+          }
+        },
+        "security": [
+          {
+            "JWTToken": []
+          }
+        ]
+      }
+    },
+    "/interUserTransactions/userSpecific": {
+      "get": {
+        "tags": [
+          "User Transactions"
+        ],
+        "summary": "Get user-specific transactions",
+        "responses": {
+          "200": {
+            "description": "List of transactions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UserTransaction"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "You need to be logged in to add transaction between users"
+          },
+          "500": {
+            "description": "User unavailable"
+          }
+        },
+        "security": [
+          {
+            "JWTToken": []
+          }
+        ]
+      }
+    },
+    "/interUserTransactions/acceptTransaction": {
+      "post": {
+        "tags": [
+          "User Transactions"
+        ],
+        "summary": "Accept a transaction",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "transaction_id": {
+                    "type": "integer",
+                    "example": 10
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated transaction details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptUserTransaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing values or values with incorrect names in the json"
+          },
+          "401": {
+            "description": "Values given should not be empty"
+          },
+          "500": {
+            "description": "User unavailable"
+          }
+        },
+        "security": [
+          {
+            "JWTToken": []
+          }
+        ]
+      }
+    },
+    "/transaction": {
+      "post": {
+        "tags": [
+          "Transaction"
+        ],
+        "summary": "Create a new transaction",
+        "operationId": "createTransaction",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "usd_amount",
+                  "lbp_amount",
+                  "usd_to_lbp"
+                ],
+                "properties": {
+                  "usd_amount": {
+                    "type": "number",
+                    "format": "float",
+                    "description": "Amount in USD"
+                  },
+                  "lbp_amount": {
+                    "type": "number",
+                    "format": "float",
+                    "description": "Amount in LBP"
+                  },
+                  "usd_to_lbp": {
+                    "type": "boolean",
+                    "description": "Conversion direction, USD to LBP if true"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transaction created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Transaction"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error for input data"
+          },
+          "403": {
+            "description": "Authentication error, token invalid or expired"
+          }
+        },
+        "security": [
+          {
+            "None": []
+          },
+          {
+            "JWTToken": []
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Transaction"
+        ],
+        "summary": "Retrieve all transactions for the authenticated user",
+        "operationId": "getTransactions",
+        "responses": {
+          "200": {
+            "description": "A list of transactions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Transaction"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authentication error, token invalid or expired"
+          }
+        },
+        "security": [
+          {
+            "JWTToken": []
+          }
+        ]
+      }
+    },
+    "/exchangeRate": {
+      "get": {
+        "tags": [
+          "Exchange Rate"
+        ],
+        "summary": "Get exchange rates",
+        "description": "Calculate and return exchange rates based on last 3 days",
+        "operationId": "calculateExchangeRate",
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "usd_to_lbp": {
+                      "type": "number",
+                      "format": "number",
+                      "example": null
+                    },
+                    "lbp_to_usd": {
+                      "type": "number",
+                      "format": "number",
+                      "example": 89750.34
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/exchangeRate/withDates": {
+      "get": {
+        "tags": [
+          "Exchange Rate"
+        ],
+        "summary": "Get exchange rates with specific date range.",
+        "description": "If all values are null, exchange rates for all times available in database until today is return. If START_DATE values are null, the date of first transaction in database is used. If END_DATE vallues are null, the day of request will be the date (i.e. .today())",
+        "operationId": "getExchangeRates",
+        "parameters": [
+          {
+            "name": "START_YEAR",
+            "in": "query",
+            "required": true,
+            "description": "Start year, if null, first date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 2024
+            }
+          },
+          {
+            "name": "START_MONTH",
+            "in": "query",
+            "required": true,
+            "description": "Start month, if null, first date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 4
+            }
+          },
+          {
+            "name": "START_DAY",
+            "in": "query",
+            "required": true,
+            "description": "Start day, if null, first date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 12
+            }
+          },
+          {
+            "name": "END_YEAR",
+            "in": "query",
+            "required": true,
+            "description": "End year, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": null
+            }
+          },
+          {
+            "name": "END_MONTH",
+            "in": "query",
+            "required": true,
+            "description": "End month, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": null
+            }
+          },
+          {
+            "name": "END_DAY",
+            "in": "query",
+            "required": true,
+            "description": "End day, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "usd_to_lbp": {
+                        "type": "number",
+                        "format": "number",
+                        "example": null
+                      },
+                      "lbp_to_usd": {
+                        "type": "number",
+                        "format": "number",
+                        "example": 89750.34
+                      },
+                      "date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "01-04-2024"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters provided"
+          },
+          "403": {
+            "description": "Invalid date or date range provided"
+          }
+        }
+      }
+    },
+    "/authentication": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Authenticate user and obtain an access token.",
+        "description": "Authenticates users with their username and password. Upon successful authentication, it returns a JSON Web Token (JWT) that can be used for authenticated requests to other endpoints. The token is valid for 4 days.",
+        "operationId": "authenticateUser",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/Authentication"
+        },
+        "responses": {
+          "200": {
+            "description": "Authentication successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "JSON Web Token (JWT)",
+                      "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTAwNzk0NTQsImlhdCI6MTcwOTczMzg1NCwic3ViIjo2fQ.NDmbc91jp6L9jVyPSujlEHxeo6YmL7jw0lkDmQPliyo"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request, username or password not provided"
+          },
+          "403": {
+            "description": "Invalid username or password"
+          }
+        },
+        "security": []
+      }
+    },
+    "/user": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Create new user",
+        "description": "A new user can create an account for themselves.",
+        "security": [],
+        "operationId": "createUser",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/UserRequestBody"
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input empty, username not valid, or password is weak.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Weak password"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "User already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "User already exists"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get user from token",
+        "description": "Retrieves user information based on the provided JWT token.",
+        "responses": {
+          "200": {
+            "description": "User retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "498": {
+            "description": "Invalid or expired token."
+          },
+          "499": {
+            "description": "Token not provided."
+          }
+        },
+        "security": [
+          {
+            "JWTToken": []
+          }
+        ]
+      }
+    },
+    "/user/updateUserPreferences": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Update user preferences. READ DESCRIPTION IMPORTANT!!!!!!!!!!!!!!",
+        "description": "Updates user preferences for receiving notifications based on exchange rate changes. NOTE THAT IF YOU CHANGE ONE OF THE BOOLEAN FLAGS TO TRUE WITHOUT SETTING ALL THE PARAMETERS OF IT, PREVIOUS PREFERENCES WILL BE OVERRIDEN. WHAT I MEAN IS: ASSUME A USEER SET an upper_bound_usd_to_lbp and saves. Then the user wants to send lower_bound_usd_to_lbp. IF YOU SEND THE JSON WITH  upper_bound_usd_to_lbp SET TO NULL, IT WILL BE DELETED AND USER WON't BE NOTIFIED WHEN IT IS FULFILLED. SIMILARLY FOR RATES. AS FOR EMAILS AND SMS IF YOU SET update_email_preference = true and send_email = true AN EMAIL NEEDS TO BE SENT TO BACKEND REGARDLESS IF THERE IS ONE ALREADY IN THE DATABASE. SIMILARLY FOR PHONE NUMBER. SO, YOU CAN FETCH PREVIOUS PREFERENCES TO SEND THE CORRECT UPDATES. \n  ",
+        "requestBody": {
+          "$ref": "#/components/requestBodies/UserPreferences"
+        },
+        "responses": {
+          "200": {
+            "description": "User preferences updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPreferences"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid data provided."
+          },
+          "498": {
+            "description": "Invalid token."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        },
+        "security": [
+          {
+            "JWTToken": []
+          }
+        ]
+      }
+    },
+    "/user/getUserPreferencesFromId": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get user preferences",
+        "description": "Retrieves the user preferences for notifications.",
+        "responses": {
+          "200": {
+            "description": "User preferences retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPreferences"
+                }
+              }
+            }
+          },
+          "498": {
+            "description": "Invalid token."
+          },
+          "499": {
+            "description": "Token not provided."
+          }
+        },
+        "security": [
+          {
+            "JWTToken": []
+          }
+        ]
+      }
+    },
+    "/wallet": {
+      "get": {
+        "tags": [
+          "Wallet"
+        ],
+        "summary": "Retrieve wallet values",
+        "description": "Retrieves the wallet values for the user authenticated by the token provided in the request headers.",
+        "responses": {
+          "200": {
+            "description": "Wallet values retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wallet"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid token or no wallet associated with this account."
+          }
+        },
+        "security": [
+          {
+            "JWTToken": []
+          }
+        ]
+      }
+    },
+    "/wallet/updateWallet": {
+      "post": {
+        "tags": [
+          "Wallet"
+        ],
+        "summary": "Update wallet values",
+        "description": "Updates the wallet balances for the specified user ID with the provided USD and LBP values to add.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "usd_to_add",
+                  "lbp_to_add",
+                  "user_id"
+                ],
+                "properties": {
+                  "usd_to_add": {
+                    "type": "number",
+                    "example": -100,
+                    "description": "USD amount to add to the wallet."
+                  },
+                  "lbp_to_add": {
+                    "type": "number",
+                    "example": 200000,
+                    "description": "LBP amount to add to the wallet."
+                  },
+                  "user_id": {
+                    "type": "integer",
+                    "example": 1,
+                    "description": "User ID of the wallet owner."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Wallet updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wallet"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing values, incorrect input names, or no wallet found for the given user ID."
+          }
+        }
+      }
+    },
+    "/statistics/getExtremums": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "summary": "Get extremums of exchange rates within a specific date range",
+        "operationId": "getExtremums",
+        "parameters": [
+          {
+            "name": "START_YEAR",
+            "in": "query",
+            "required": true,
+            "description": "Start year, if null, first date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 2024
+            }
+          },
+          {
+            "name": "START_MONTH",
+            "in": "query",
+            "required": true,
+            "description": "Start month, if null, first date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 4
+            }
+          },
+          {
+            "name": "START_DAY",
+            "in": "query",
+            "required": true,
+            "description": "Start day, if null, first date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 12
+            }
+          },
+          {
+            "name": "END_YEAR",
+            "in": "query",
+            "required": true,
+            "description": "End year, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 2024
+            }
+          },
+          {
+            "name": "END_MONTH",
+            "in": "query",
+            "required": true,
+            "description": "End month, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 4
+            }
+          },
+          {
+            "name": "END_DAY",
+            "in": "query",
+            "required": true,
+            "description": "End day, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "min_lbp_to_usd": {
+                      "type": "number",
+                      "format": "number",
+                      "example": 85000.12
+                    },
+                    "max_lbp_to_usd": {
+                      "type": "number",
+                      "format": "number",
+                      "example": 90000.34
+                    },
+                    "min_lbp_to_usd_date": {
+                      "type": "string",
+                      "format": "date",
+                      "example": "01-04-2024"
+                    },
+                    "max_lbp_to_usd_date": {
+                      "type": "string",
+                      "format": "date",
+                      "example": "03-04-2024"
+                    },
+                    "min_usd_to_lbp": {
+                      "type": "number",
+                      "format": "number",
+                      "example": 87000
+                    },
+                    "max_usd_to_lbp": {
+                      "type": "number",
+                      "format": "number",
+                      "example": 91000
+                    },
+                    "min_usd_to_lbp_date": {
+                      "type": "string",
+                      "format": "date",
+                      "example": "05-04-2024"
+                    },
+                    "max_usd_to_lbp_date": {
+                      "type": "string",
+                      "format": "date",
+                      "example": "10-04-2024"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters provided"
+          }
+        }
+      }
+    },
+    "/statistics/getAverageRates": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "summary": "Get average exchange rates within a specific date range",
+        "operationId": "getAverageRates",
+        "parameters": [
+          {
+            "name": "START_YEAR",
+            "in": "query",
+            "required": true,
+            "description": "Start year, if null, first date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 2024
+            }
+          },
+          {
+            "name": "START_MONTH",
+            "in": "query",
+            "required": true,
+            "description": "Start month, if null, first date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 4
+            }
+          },
+          {
+            "name": "START_DAY",
+            "in": "query",
+            "required": true,
+            "description": "Start day, if null, first date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 12
+            }
+          },
+          {
+            "name": "END_YEAR",
+            "in": "query",
+            "required": true,
+            "description": "End year, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 2024
+            }
+          },
+          {
+            "name": "END_MONTH",
+            "in": "query",
+            "required": true,
+            "description": "End month, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 4
+            }
+          },
+          {
+            "name": "END_DAY",
+            "in": "query",
+            "required": true,
+            "description": "End day, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "avg_lbp_to_usd": {
+                      "type": "number",
+                      "format": "number",
+                      "example": 87500.23
+                    },
+                    "avg_usd_to_lbp": {
+                      "type": "number",
+                      "format": "number",
+                      "example": 89000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters provided"
+          }
+        }
+      }
+    },
+    "/statistics/getPercentChange": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "summary": "Get percentage change in exchange rates within a specific date range",
+        "operationId": "getPercentChange",
+        "parameters": [
+          {
+            "name": "START_YEAR",
+            "in": "query",
+            "required": true,
+            "description": "Start year, if null, first date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 2024
+            }
+          },
+          {
+            "name": "START_MONTH",
+            "in": "query",
+            "required": true,
+            "description": "Start month, if null, first date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 4
+            }
+          },
+          {
+            "name": "START_DAY",
+            "in": "query",
+            "required": true,
+            "description": "Start day, if null, first date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 12
+            }
+          },
+          {
+            "name": "END_YEAR",
+            "in": "query",
+            "required": true,
+            "description": "End year, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 2024
+            }
+          },
+          {
+            "name": "END_MONTH",
+            "in": "query",
+            "required": true,
+            "description": "End month, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 4
+            }
+          },
+          {
+            "name": "END_DAY",
+            "in": "query",
+            "required": true,
+            "description": "End day, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "percent_lbp_to_usd": {
+                      "type": "number",
+                      "format": "number",
+                      "example": 5.2
+                    },
+                    "percent_usd_to_lbp": {
+                      "type": "number",
+                      "format": "number",
+                      "example": -3.4
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters provided"
+          }
+        }
+      }
+    },
+    "/statistics/getVolumes": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "summary": "Get volumes of exchange transactions within a specific date range",
+        "operationId": "getVolumes",
+        "parameters": [
+          {
+            "name": "START_YEAR",
+            "in": "query",
+            "required": true,
+            "description": "Start year, if null, first date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 2024
+            }
+          },
+          {
+            "name": "START_MONTH",
+            "in": "query",
+            "required": true,
+            "description": "Start month, if null, first date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 4
+            }
+          },
+          {
+            "name": "START_DAY",
+            "in": "query",
+            "required": true,
+            "description": "Start day, if null, first date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 12
+            }
+          },
+          {
+            "name": "END_YEAR",
+            "in": "query",
+            "required": true,
+            "description": "End year, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 2024
+            }
+          },
+          {
+            "name": "END_MONTH",
+            "in": "query",
+            "required": true,
+            "description": "End month, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 4
+            }
+          },
+          {
+            "name": "END_DAY",
+            "in": "query",
+            "required": true,
+            "description": "End day, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "lbp_to_usd_volume": {
+                      "type": "integer",
+                      "example": 10
+                    },
+                    "usd_to_lbp_volume": {
+                      "type": "integer",
+                      "example": 15
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters provided"
+          }
+        }
+      }
+    },
+    "/predictions": {
+      "get": {
+        "tags": [
+          "Predictions"
+        ],
+        "summary": "Get the predicted exchange rate for a future date",
+        "operationId": "predictRate",
+        "parameters": [
+          {
+            "name": "YEAR",
+            "in": "query",
+            "required": true,
+            "description": "End year, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 2024
+            }
+          },
+          {
+            "name": "MONTH",
+            "in": "query",
+            "required": true,
+            "description": "End month, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 4
+            }
+          },
+          {
+            "name": "DAY",
+            "in": "query",
+            "required": true,
+            "description": "End day, if null, today's date is used.",
+            "schema": {
+              "type": "integer",
+              "nullable": true,
+              "example": 25
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "rate_prediction": {
+                      "type": "number",
+                      "format": "number",
+                      "example": 89700.5
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters provided"
+          },
+          "403": {
+            "description": "Cannot predict for previous days. Predict into the future only"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UserPreferences": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "user_id": {
+            "type": "integer",
+            "example": 4
+          },
+          "upper_bound_usd_to_lbp": {
+            "type": "number",
+            "example": 90000.67
+          },
+          "lower_bound_usd_to_lbp": {
+            "type": "number",
+            "example": 85000
+          },
+          "upper_bound_lbp_to_usd": {
+            "type": "number",
+            "example": 85000
+          },
+          "lower_bound_lbp_to_usd": {
+            "type": "number",
+            "example": 85000
+          },
+          "email": {
+            "type": "string",
+            "example": "hello@gmail.com"
+          },
+          "send_email": {
+            "type": "boolean"
+          },
+          "phone_number": {
+            "type": "string",
+            "example": "+96101111111"
+          },
+          "send_sms": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "The transaction identifier"
+          },
+          "usd_amount": {
+            "type": "number",
+            "format": "float",
+            "description": "Amount in USD"
+          },
+          "lbp_amount": {
+            "type": "number",
+            "format": "float",
+            "description": "Amount in LBP"
+          },
+          "usd_to_lbp": {
+            "type": "boolean",
+            "description": "Conversion direction, USD to LBP if true"
+          },
+          "added_date": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The date and time when the transaction was added"
+          },
+          "user_id": {
+            "type": "integer",
+            "description": "The identifier of the user who made the transaction"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "example": 1
+          },
+          "user_name": {
+            "type": "string",
+            "example": "omar1212"
+          }
+        }
+      },
+      "UserTransaction": {
+        "type": "object",
+        "properties": {
+          "accepted": {
+            "type": "boolean",
+            "example": false
+          },
+          "added_date": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-04-14T19:54:54.900163"
+          },
+          "date_accepted": {
+            "type": "string",
+            "format": "date-time",
+            "example": null
+          },
+          "id": {
+            "type": "integer",
+            "example": null
+          },
+          "lbp_amount": {
+            "type": "number",
+            "example": 89000
+          },
+          "usd_amount": {
+            "type": "number",
+            "example": 1
+          },
+          "usd_to_lbp": {
+            "type": "integer",
+            "example": 1
+          },
+          "user1": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 42
+              },
+              "user_name": {
+                "type": "string",
+                "example": "sharaf302"
+              }
+            }
+          },
+          "user1_id": {
+            "type": "integer",
+            "example": 42
+          },
+          "user2": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": null
+              },
+              "user_name": {
+                "type": "string",
+                "example": null
+              }
+            }
+          },
+          "user2_id": {
+            "type": "integer",
+            "example": null
+          }
+        }
+      },
+      "AcceptUserTransaction": {
+        "type": "object",
+        "properties": {
+          "accepted": {
+            "type": "boolean",
+            "example": false
+          },
+          "added_date": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-04-14T19:54:54.900163"
+          },
+          "date_accepted": {
+            "type": "string",
+            "format": "date-time",
+            "example": null
+          },
+          "id": {
+            "type": "integer",
+            "example": null
+          },
+          "lbp_amount": {
+            "type": "number",
+            "example": 89000
+          },
+          "usd_amount": {
+            "type": "number",
+            "example": 1
+          },
+          "usd_to_lbp": {
+            "type": "integer",
+            "example": 1
+          },
+          "user1": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 42
+              },
+              "user_name": {
+                "type": "string",
+                "example": "sharaf302"
+              }
+            }
+          },
+          "user1_id": {
+            "type": "integer",
+            "example": 42
+          },
+          "user2": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "example": 12
+              },
+              "user_name": {
+                "type": "string",
+                "example": "sharaf2"
+              }
+            }
+          },
+          "user2_id": {
+            "type": "integer",
+            "example": 12
+          }
+        }
+      },
+      "Wallet": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1,
+            "description": "Unique identifier of the wallet."
+          },
+          "user_id": {
+            "type": "integer",
+            "example": 1,
+            "description": "Unique identifier of the user who owns the wallet."
+          },
+          "usd_amount": {
+            "type": "number",
+            "example": 500,
+            "description": "Amount of USD in the wallet."
+          },
+          "lbp_amount": {
+            "type": "number",
+            "example": 10000000,
+            "description": "Amount of LBP in the wallet."
+          }
+        }
+      }
+    },
+    "requestBodies": {
+      "UserPreferences": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "update_bounds": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "upper_bound_usd_to_lbp": {
+                  "type": "number",
+                  "example": 90000.67
+                },
+                "lower_bound_usd_to_lbp": {
+                  "type": "number",
+                  "example": 85000
+                },
+                "upper_bound_lbp_to_usd": {
+                  "type": "number",
+                  "example": 85000
+                },
+                "lower_bound_lbp_to_usd": {
+                  "type": "number",
+                  "example": 85000
+                },
+                "update_email_preference": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "email": {
+                  "type": "string",
+                  "example": "hello@gmail.com"
+                },
+                "send_email": {
+                  "type": "boolean"
+                },
+                "update_sms_preference": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "phone_number": {
+                  "type": "string",
+                  "example": "+96101111111"
+                },
+                "send_sms": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Authentication": {
+        "description": "Authentication request payload",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "user_name": {
+                  "type": "string",
+                  "example": "user123"
+                },
+                "password": {
+                  "type": "string",
+                  "format": "password",
+                  "example": "Passw0rd"
+                }
+              }
+            }
+          }
+        }
+      },
+      "UserArray": {
+        "description": "List of user object",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        }
+      },
+      "UserRequestBody": {
+        "description": "User data for registration",
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "user_name": {
+                  "type": "string",
+                  "example": "omar1212"
+                },
+                "password": {
+                  "type": "string",
+                  "format": "password",
+                  "example": "Pass_1212"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "JWTToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization",
+        "description": "JSON Web Token (JWT) allow users to link transactions to themselves.\nAdd the JWT token in the format `Bearer <token>`.\n"
+      },
+      "None": {
+        "type": "http",
+        "scheme": "none",
+        "description": "Authentication is not needed always.\n"
+      }
+    }
+  }
+}
